@@ -1,0 +1,64 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dev
+    working_dir: /app
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: "mysql://root:root@db:3306/moviedb"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - minhavenda
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: minhavenda
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - moviedb
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      - db
+    networks:
+      - moviedb
+
+networks:
+  moviedb:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
