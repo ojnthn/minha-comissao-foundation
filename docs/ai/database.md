@@ -16,10 +16,10 @@ Namespace: `database` (`src/config/database.config.ts`).
 
 ```
 # local
-mysql://root:root@localhost:3306/moviedb
+mysql://root:root@localhost:3306/minhavenda
 
 # Docker Compose (hostname interno)
-mysql://root:root@db:3306/moviedb
+mysql://root:root@db:3306/minhavenda
 ```
 
 ## Schema Prisma
@@ -28,70 +28,18 @@ Localizado em `prisma/schema.prisma`.
 
 ### Convenções de modelo
 
-- Nome do modelo em `PascalCase` singular: `model User`
-- Tabela mapeada em `snake_case` plural via `@@map`: `@@map("users")`
-- `createdAt`/`updatedAt` mapeados via `@map("created_at")` / `@map("updated_at")`
-- IDs como UUID: `@id @default(uuid())`
+- Nome do modelo em `PascalCase` singular: `model Produto`
+- Tabela mapeada em `snake_case` via `@@map`, preservando o nome físico definido em `Database.sql` (ex: `@@map("produto")`)
+- IDs como `Int` auto-incremento: `@id @default(autoincrement())`, seguindo o schema original em `Database.sql` (não UUID)
+- Colunas multi-palavra mapeadas via `@map` (ex: `logDataCadastro @map("log_data_cadastro")`)
 - Campos únicos marcados com `@unique`
-- Enums em `snake_case` lowercase: `active`, `inactive`, `deleted`
+- Relações de FK explicitam `onDelete: Restrict, onUpdate: Restrict` e `map: "fk_..."` para preservar o nome da constraint original
 
-### Modelo atual: User
+### Modelos atuais
 
-```prisma
-model User {
-  id        String     @id @default(uuid())
-  name      String
-  email     String     @unique
-  password  String
-  status    UserStatus @default(active)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+`Usuario`, `ComissaoPorcentagem`, `Produto`, `Marceneiro`, `Pedido` — mapeados 1:1 a partir de `Database.sql` (raiz do projeto), que é a fonte de verdade do schema. Ver `prisma/schema.prisma` para a definição completa.
 
-  language                       String   @default("en-US") @map("language")
-  region                         String   @default("US") @map("region")
-  includeAdult                   Boolean  @default(false) @map("include_adult")
-  theme                          String   @default("dark") @map("theme")
-  itemsPerPage                   Int      @default(20) @map("items_per_page")
-  defaultSortBy                  String   @default("popularity.desc") @map("default_sort_by")
-  newReleasesFromFavoriteGenres  Boolean  @default(true) @map("new_releases_from_favorite_genres")
-  watchlistUpcomingReminders     Boolean  @default(true) @map("watchlist_upcoming_reminders")
-
-  favoriteGenres      UserFavoriteGenre[]
-  streamingProviders  UserStreamingProvider[]
-
-  @@map("users")
-}
-
-enum UserStatus {
-  active
-  inactive
-  deleted
-}
-
-model UserFavoriteGenre {
-  id      String @id @default(uuid())
-  userId  String @map("user_id")
-  genreId Int    @map("genre_id")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, genreId])
-  @@map("user_favorite_genres")
-}
-
-model UserStreamingProvider {
-  id         String @id @default(uuid())
-  userId     String @map("user_id")
-  providerId Int    @map("provider_id")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, providerId])
-  @@map("user_streaming_providers")
-}
-```
-
-> Campos de preferência (`language`, `region`, `includeAdult`, `theme`, `itemsPerPage`, `defaultSortBy`, `newReleasesFromFavoriteGenres`, `watchlistUpcomingReminders`) e as tabelas `user_favorite_genres` / `user_streaming_providers` pertencem ao módulo `user-config` — ver `src/modules/user-config/CONTEXT.md`.
+Padrão de auditoria (`log_data_cadastro`, `log_id_usuario_cadastro`, `log_data_exclusao`, `log_id_usuario_exclusao`) presente em `produto`, `marceneiro` e `pedido` — soft delete via `log_data_exclusao` nulo/preenchido, sem coluna de exclusão física.
 
 ## Migrations
 

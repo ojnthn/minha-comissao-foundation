@@ -14,12 +14,10 @@ services:
     env_file:
       - ../.env
     environment:
-      DATABASE_URL: "mysql://root:root@db:3306/moviedb"
+      DATABASE_URL: "mysql://root:root@db:3306/minhavenda"
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
     restart: unless-stopped
     networks:
       - minhavenda
@@ -40,7 +38,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - moviedb
+      - minhavenda
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -53,10 +51,10 @@ services:
     depends_on:
       - db
     networks:
-      - moviedb
+      - minhavenda
 
 networks:
-  moviedb:
+  minhavenda:
     driver: bridge
 
 volumes:

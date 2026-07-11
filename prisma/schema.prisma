@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id    Int    @id @default(autoincrement())
+  nome  String @db.VarChar(150)
+  email String @unique @db.VarChar(150)
+  senha String @db.VarChar(255)
+
+  produtosCadastrados    Produto[]    @relation("ProdutoUsuarioCadastro")
+  produtosExcluidos      Produto[]    @relation("ProdutoUsuarioExclusao")
+  marceneirosCadastrados Marceneiro[] @relation("MarceneiroUsuarioCadastro")
+  marceneirosExcluidos   Marceneiro[] @relation("MarceneiroUsuarioExclusao")
+  pedidosCadastrados     Pedido[]     @relation("PedidoUsuarioCadastro")
+  pedidosExcluidos       Pedido[]     @relation("PedidoUsuarioExclusao")
+
+  @@map("usuario")
+}
+
+model ComissaoPorcentagem {
+  id    Int    @id @default(autoincrement())
+  nome  String @db.VarChar(150)
+  valor Float
+
+  produtos Produto[]
+
+  @@map("comissao_porcentagem")
+}
+
+model Produto {
+  id                          Int       @id @default(autoincrement())
+  nome                        String    @db.VarChar(150)
+  idComissaoPorcentagemPadrao Int       @map("id_comissao_porcentagem_padrao")
+  logDataCadastro             DateTime  @default(dbgenerated("CURRENT_TIMESTAMP")) @map("log_data_cadastro") @db.DateTime
+  logIdUsuarioCadastro        Int       @map("log_id_usuario_cadastro")
+  logDataExclusao             DateTime? @map("log_data_exclusao") @db.DateTime
+  logIdUsuarioExclusao        Int?      @map("log_id_usuario_exclusao")
+
+  comissaoPorcentagemPadrao ComissaoPorcentagem @relation(fields: [idComissaoPorcentagemPadrao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_produto_comissao")
+  usuarioCadastro           Usuario             @relation("ProdutoUsuarioCadastro", fields: [logIdUsuarioCadastro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_produto_usuario_cadastro")
+  usuarioExclusao           Usuario?            @relation("ProdutoUsuarioExclusao", fields: [logIdUsuarioExclusao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_produto_usuario_exclusao")
+  pedidos                   Pedido[]
+
+  @@map("produto")
+}
+
+model Marceneiro {
+  id                   Int       @id @default(autoincrement())
+  nome                 String    @db.VarChar(150)
+  logDataCadastro      DateTime  @default(dbgenerated("CURRENT_TIMESTAMP")) @map("log_data_cadastro") @db.DateTime
+  logIdUsuarioCadastro Int       @map("log_id_usuario_cadastro")
+  logDataExclusao      DateTime? @map("log_data_exclusao") @db.DateTime
+  logIdUsuarioExclusao Int?      @map("log_id_usuario_exclusao")
+
+  usuarioCadastro Usuario  @relation("MarceneiroUsuarioCadastro", fields: [logIdUsuarioCadastro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_marceneiro_usuario_cadastro")
+  usuarioExclusao Usuario? @relation("MarceneiroUsuarioExclusao", fields: [logIdUsuarioExclusao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_marceneiro_usuario_exclusao")
+  pedidos         Pedido[]
+
+  @@map("marceneiro")
+}
+
+model Pedido {
+  id                   Int       @id @default(autoincrement())
+  valorPorcentagem     Float     @map("valor_porcentagem")
+  idProduto            Int       @map("id_produto")
+  idMarceneiro         Int       @map("id_marceneiro")
+  logDataCadastro      DateTime  @default(dbgenerated("CURRENT_TIMESTAMP")) @map("log_data_cadastro") @db.DateTime
+  logIdUsuarioCadastro Int       @map("log_id_usuario_cadastro")
+  logDataExclusao      DateTime? @map("log_data_exclusao") @db.DateTime
+  logIdUsuarioExclusao Int?      @map("log_id_usuario_exclusao")
+
+  produto         Produto    @relation(fields: [idProduto], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_produto")
+  marceneiro      Marceneiro @relation(fields: [idMarceneiro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_marceneiro")
+  usuarioCadastro Usuario    @relation("PedidoUsuarioCadastro", fields: [logIdUsuarioCadastro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_usuario_cadastro")
+  usuarioExclusao Usuario?   @relation("PedidoUsuarioExclusao", fields: [logIdUsuarioExclusao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_usuario_exclusao")
+
+  @@map("pedido")
+}

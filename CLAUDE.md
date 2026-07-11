@@ -8,7 +8,7 @@ API de gerenciamento de pedidos e comissões para representantes de vendas de ch
 |---|---|
 | Framework | NestJS (TypeScript) |
 | Banco de dados | MySQL 8.0 |
-| Acesso a dados | `mysql2` (queries diretas, sem ORM) |
+| Acesso a dados | Prisma ORM (`prisma/schema.prisma`, migrations versionadas) |
 | Administração DB | phpMyAdmin |
 | Containerização | Docker + Docker Compose |
 
