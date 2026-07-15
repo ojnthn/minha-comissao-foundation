@@ -4,7 +4,7 @@
 
 | Módulo | Status | Responsabilidade |
 |---|---|---|
-| `auth` | Implementado | Registro e autenticação de usuários com JWT |
+| `auth` | Implementado | Login (email/senha) com emissão de JWT (15min); sem registro de usuário |
 | `movies` | Implementado | Listagem de filmes populares via TMDB API |
 | `user-config` | Implementado | Preferências de exibição e notificação do usuário autenticado |
 | `reviews` | Implementado | Registro de avaliação (nota, "amei", texto, data assistida) de usuário para filme |
