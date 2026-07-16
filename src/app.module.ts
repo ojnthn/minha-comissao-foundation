@@ -8,6 +8,7 @@ import { LoggingInterceptor } from './shared/interceptors/logging/logging.interc
 import { AppController } from './app.controller';
 import { ProdutosModule } from './modules/produtos/produtos.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { MarceneiroModule } from './modules/marceneiro/marceneiro.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from './modules/auth/auth.module';
     }),
     ProdutosModule,
     AuthModule,
+    MarceneiroModule,
   ],
   controllers: [AppController],
   providers: [

@@ -14,4 +14,4 @@ Implemente seguindo as convenções do CLAUDE.md do módulo (estrutura de camada
 Depois de implementar:
 1. Rode os testes existentes do módulo, se houver
 2. Atualize o `CLAUDE.md` do módulo refletindo a mudança (novo use case, rota, método de repositório)
-3. Me dê um resumo do que foi criado/alterado
+3. Me dê um resumo do que foi criado/alterado e caso seja um endpoint novo ou atualização de um existente mande o cURL para importar no postman.
