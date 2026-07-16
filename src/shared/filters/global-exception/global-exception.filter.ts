@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import {
+  BadRequestException,
   ConflictException,
   DomainException,
   NotFoundException,
@@ -33,6 +34,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         statusCode: HttpStatus.UNAUTHORIZED,
         message: exception.message,
       };
+    }
+    if (exception instanceof BadRequestException) {
+      return { statusCode: HttpStatus.BAD_REQUEST, message: exception.message };
     }
     if (exception instanceof ConflictException) {
       return { statusCode: HttpStatus.CONFLICT, message: exception.message };

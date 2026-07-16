@@ -5,3 +5,5 @@ export class UnauthorizedException extends DomainException {}
 export class ConflictException extends DomainException {}
 
 export class NotFoundException extends DomainException {}
+
+export class BadRequestException extends DomainException {}

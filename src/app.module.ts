@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { ProdutosModule } from './modules/produtos/produtos.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MarceneiroModule } from './modules/marceneiro/marceneiro.module';
+import { PedidoModule } from './modules/pedido/pedido.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MarceneiroModule } from './modules/marceneiro/marceneiro.module';
     ProdutosModule,
     AuthModule,
     MarceneiroModule,
+    PedidoModule,
   ],
   controllers: [AppController],
   providers: [

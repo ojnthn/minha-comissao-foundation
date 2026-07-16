@@ -48,7 +48,7 @@ model Produto {
   comissaoPorcentagemPadrao ComissaoPorcentagem @relation(fields: [idComissaoPorcentagemPadrao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_produto_comissao")
   usuarioCadastro           Usuario             @relation("ProdutoUsuarioCadastro", fields: [logIdUsuarioCadastro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_produto_usuario_cadastro")
   usuarioExclusao           Usuario?            @relation("ProdutoUsuarioExclusao", fields: [logIdUsuarioExclusao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_produto_usuario_exclusao")
-  pedidos                   Pedido[]
+  pedidosProdutos           PedidoProduto[]
 
   @@map("produto")
 }
@@ -70,18 +70,30 @@ model Marceneiro {
 
 model Pedido {
   id                   Int       @id @default(autoincrement())
-  valorPorcentagem     Float     @map("valor_porcentagem")
-  idProduto            Int       @map("id_produto")
+  valor                Float     @map("valor")
   idMarceneiro         Int       @map("id_marceneiro")
   logDataCadastro      DateTime  @default(dbgenerated("CURRENT_TIMESTAMP")) @map("log_data_cadastro") @db.DateTime
   logIdUsuarioCadastro Int       @map("log_id_usuario_cadastro")
   logDataExclusao      DateTime? @map("log_data_exclusao") @db.DateTime
   logIdUsuarioExclusao Int?      @map("log_id_usuario_exclusao")
 
-  produto         Produto    @relation(fields: [idProduto], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_produto")
-  marceneiro      Marceneiro @relation(fields: [idMarceneiro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_marceneiro")
-  usuarioCadastro Usuario    @relation("PedidoUsuarioCadastro", fields: [logIdUsuarioCadastro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_usuario_cadastro")
-  usuarioExclusao Usuario?   @relation("PedidoUsuarioExclusao", fields: [logIdUsuarioExclusao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_usuario_exclusao")
+  marceneiro      Marceneiro      @relation(fields: [idMarceneiro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_marceneiro")
+  usuarioCadastro Usuario         @relation("PedidoUsuarioCadastro", fields: [logIdUsuarioCadastro], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_usuario_cadastro")
+  usuarioExclusao Usuario?        @relation("PedidoUsuarioExclusao", fields: [logIdUsuarioExclusao], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_usuario_exclusao")
+  produtos        PedidoProduto[]
 
   @@map("pedido")
+}
+
+model PedidoProduto {
+  id               Int   @id @default(autoincrement())
+  idPedido         Int   @map("id_pedido")
+  idProduto        Int   @map("id_produto")
+  valorProduto     Float @map("valor_produto")
+  valorPorcentagem Float @map("valor_porcentagem")
+
+  pedido  Pedido  @relation(fields: [idPedido], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_produto_pedido")
+  produto Produto @relation(fields: [idProduto], onDelete: Restrict, onUpdate: Restrict, references: [id], map: "fk_pedido_produto_produto")
+
+  @@map("pedido_produto")
 }
