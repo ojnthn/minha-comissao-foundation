@@ -60,7 +60,6 @@ produtos/
 │   └── dtos/
 │       ├── create-produto.dto.ts
 │       ├── update-produto.dto.ts
-│       ├── delete-produto.dto.ts
 │       └── list-produtos-query.dto.ts
 ├── infrastructure/
 │   └── repositories/
@@ -80,6 +79,7 @@ produtos/
 | Módulo | Finalidade |
 |---|---|
 | `ConfigModule` (global, via `AppModule`) | Acesso a `DATABASE_URL` |
+| `AuthModule` | `JwtAuthGuard` + `@CurrentUser()` para proteger `create`/`delete` |
 
 ### Variáveis de ambiente
 
@@ -106,12 +106,12 @@ export class AppModule {}
 
 ```http
 POST /produtos
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "nome": "Chapa MDF Branco 15mm",
-  "idComissaoPorcentagemPadrao": 1,
-  "idUsuarioCadastro": 1
+  "idComissaoPorcentagemPadrao": 1
 }
 ```
 
@@ -124,12 +124,12 @@ Content-Type: application/json
 **Request:**
 ```http
 POST /produtos
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "nome": "Chapa MDF Branco 15mm",
-  "idComissaoPorcentagemPadrao": 1,
-  "idUsuarioCadastro": 1
+  "idComissaoPorcentagemPadrao": 1
 }
 ```
 
@@ -152,6 +152,7 @@ Content-Type: application/json
 | Código HTTP | Mensagem | Causa |
 |---|---|---|
 | `400` | `["Nome é obrigatório", ...]` | Validação de DTO falhou |
+| `401` | `Token não informado` / `Token inválido ou expirado` | `create`/`delete` chamados sem Bearer token válido |
 | `404` | `Produto não encontrado` | ID inexistente ou produto já excluído |
 | `422` | `{mensagem}` | Violação de regra de domínio |
 
@@ -169,5 +170,6 @@ npm run test:cov -- --testPathPattern=produtos
 
 ## Observações
 
-- Não há autenticação ainda: `idUsuarioCadastro`/`idUsuarioExclusao` são enviados explicitamente no body. Isso muda quando o módulo `auth` for implementado (passam a vir de `@CurrentUser()`).
+- `POST /produtos` e `DELETE /produtos/:id` exigem `Authorization: Bearer <token>` (`JwtAuthGuard`); `idUsuarioCadastro`/`idUsuarioExclusao` vêm do token via `@CurrentUser()`, não do body.
+- `GET`/`PATCH` continuam públicos por enquanto.
 - Remoção é sempre soft delete (`logDataExclusao`/`logIdUsuarioExclusao`) — nunca `DELETE` físico.

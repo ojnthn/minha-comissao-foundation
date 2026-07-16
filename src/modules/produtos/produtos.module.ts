@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { AuthModule } from '../auth/auth.module';
 import { ProdutosController } from './presentation/controllers/produtos.controller';
 import { CreateProdutoUseCase } from './application/use-cases/create-produto.use-case';
 import { GetProdutoUseCase } from './application/use-cases/get-produto.use-case';
@@ -10,6 +11,7 @@ import { PrismaProdutoRepository } from './infrastructure/repositories/prisma-pr
 import { PRODUTO_REPOSITORY } from './domain/repositories/produto.repository.interface';
 
 @Module({
+  imports: [AuthModule],
   controllers: [ProdutosController],
   providers: [
     { provide: PrismaClient, useValue: new PrismaClient() },

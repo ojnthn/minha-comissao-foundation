@@ -14,13 +14,4 @@ export class CreateProdutoDto {
   @IsInt()
   @Min(1)
   idComissaoPorcentagemPadrao!: number;
-
-  @ApiProperty({
-    example: 1,
-    description:
-      'ID do usuário responsável pelo cadastro (temporário até o módulo de autenticação existir)',
-  })
-  @IsInt()
-  @Min(1)
-  idUsuarioCadastro!: number;
 }

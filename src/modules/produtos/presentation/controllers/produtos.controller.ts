@@ -8,17 +8,24 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateProdutoDto } from '../../application/dtos/create-produto.dto';
 import { UpdateProdutoDto } from '../../application/dtos/update-produto.dto';
-import { DeleteProdutoDto } from '../../application/dtos/delete-produto.dto';
 import { ListProdutosQueryDto } from '../../application/dtos/list-produtos-query.dto';
 import { CreateProdutoUseCase } from '../../application/use-cases/create-produto.use-case';
 import { GetProdutoUseCase } from '../../application/use-cases/get-produto.use-case';
 import { ListProdutosUseCase } from '../../application/use-cases/list-produtos.use-case';
 import { UpdateProdutoUseCase } from '../../application/use-cases/update-produto.use-case';
 import { DeleteProdutoUseCase } from '../../application/use-cases/delete-produto.use-case';
+import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
+import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
 
 @ApiTags('produtos')
 @Controller('produtos')
@@ -50,13 +57,15 @@ export class ProdutosController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cria um novo produto' })
   @ApiResponse({ status: 201, description: 'Produto criado' })
-  create(@Body() dto: CreateProdutoDto) {
+  create(@Body() dto: CreateProdutoDto, @CurrentUser() userId: number) {
     return this.createProdutoUseCase.execute({
       nome: dto.nome,
       idComissaoPorcentagemPadrao: dto.idComissaoPorcentagemPadrao,
-      idUsuarioCadastro: dto.idUsuarioCadastro,
+      idUsuarioCadastro: userId,
     });
   }
 
@@ -73,13 +82,15 @@ export class ProdutosController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove (soft delete) um produto' })
   @ApiResponse({ status: 200, description: 'Produto removido' })
   @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  delete(@Param('id', ParseIntPipe) id: number, @Body() dto: DeleteProdutoDto) {
+  delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() userId: number) {
     return this.deleteProdutoUseCase.execute({
       id,
-      idUsuarioExclusao: dto.idUsuarioExclusao,
+      idUsuarioExclusao: userId,
     });
   }
 }

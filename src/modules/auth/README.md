@@ -10,8 +10,9 @@ Autenticar um usuário já cadastrado (email + senha) e retornar um token JWT v�
 
 - Validar email/senha contra o `Usuario` cadastrado no banco
 - Emitir um JWT contendo o `id` do usuário
+- Proteger rotas de outros módulos via `JwtAuthGuard` + `@CurrentUser()`
 
-> Cadastro de usuário e proteção de outras rotas (guard) não fazem parte deste módulo ainda.
+> Cadastro de usuário não faz parte deste módulo ainda.
 
 ---
 
@@ -57,8 +58,12 @@ auth/
 │   └── dtos/
 │       └── login.dto.ts
 ├── infrastructure/
-│   └── repositories/
-│       └── prisma-usuario.repository.ts
+│   ├── repositories/
+│   │   └── prisma-usuario.repository.ts
+│   ├── guards/
+│   │   └── jwt-auth.guard.ts
+│   └── decorators/
+│       └── current-user.decorator.ts
 ├── presentation/
 │   └── controllers/
 │       └── auth.controller.ts
@@ -165,4 +170,5 @@ npm run test:e2e
 ## Observações
 
 - Não há endpoint de registro — a senha do `Usuario` já deve estar armazenada como hash bcrypt (seed/migration).
-- O token não é validado por nenhum guard ainda; nenhuma outra rota do sistema exige autenticação no momento.
+- Rotas protegidas usam `@UseGuards(JwtAuthGuard)` + `@CurrentUser()` (ex.: `POST /produtos`, `DELETE /produtos/:id`). O client deve enviar `Authorization: Bearer <token>`.
+- Módulos que precisam proteger rotas devem importar `AuthModule` (exporta `JwtTokenService` e `JwtAuthGuard`).

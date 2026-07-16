@@ -19,7 +19,6 @@
 ### Fora do escopo
 
 - Cadastro/registro de usuário (não existe endpoint de signup ainda — `Usuario.senha` deve já estar populado com hash bcrypt via seed/migration)
-- Guard/`@CurrentUser()` para proteger outras rotas (ver "Evolução Futura")
 - Refresh token / logout / revogação de token
 
 ---
@@ -29,6 +28,8 @@
 | Use Case | Arquivo | Rota |
 |---|---|---|
 | `LoginUseCase` | `application/use-cases/login.use-case.ts` | `POST /auth/login` |
+
+`JwtAuthGuard` (não é use case, mas protege rotas de outros módulos): `infrastructure/guards/jwt-auth.guard.ts`. Extrai o Bearer token do header `Authorization`, chama `JwtTokenService.verify()` e popula `request.user = { id: payload.sub }`. Usado via `@UseGuards(JwtAuthGuard)` + decorator `@CurrentUser()` (`infrastructure/decorators/current-user.decorator.ts`).
 
 ---
 
@@ -91,6 +92,7 @@ export interface IUsuarioRepository {
 | Exceção | Código HTTP | Quando ocorre |
 |---|---|---|
 | `UnauthorizedException` | `401` | Email não encontrado OU senha não confere (mensagem genérica igual nos dois casos, para não vazar quais emails existem) |
+| `UnauthorizedException` (via `JwtAuthGuard`) | `401` | Rota protegida chamada sem header `Authorization: Bearer <token>`, ou com token inválido/expirado |
 
 ---
 
@@ -180,6 +182,8 @@ export interface IUsuarioRepository {
 | Controller | `presentation/controllers/auth.controller.ts` | `AuthController` |
 | Abstração JWT (shared) | `shared/jwt/jwt-token.service.ts` | `JwtTokenService` |
 | Abstração hash (shared) | `shared/crypto/password-hasher.service.ts` | `PasswordHasherService` |
+| Guard JWT | `infrastructure/guards/jwt-auth.guard.ts` | `JwtAuthGuard` |
+| Decorator usuário atual | `infrastructure/decorators/current-user.decorator.ts` | `CurrentUser` |
 
 ---
 
@@ -191,7 +195,7 @@ export interface IUsuarioRepository {
 | `shared/types/result` | `Usuario.create()` retorna `Result<Usuario>` |
 | `shared/jwt/jwt-token.service` | Emite/valida JWT — usado por `LoginUseCase` |
 | `shared/crypto/password-hasher.service` | Compara senha em texto plano com hash bcrypt |
-| `produtos` módulo | Hoje recebe `idUsuarioCadastro`/`idUsuarioExclusao` explícito no body; deve migrar para `@CurrentUser()` quando um guard JWT existir (ver "Evolução Futura") |
+| `produtos` módulo | Importa `AuthModule` para usar `JwtAuthGuard` + `@CurrentUser()` nas rotas `POST /produtos` e `DELETE /produtos/:id`, em vez de receber `idUsuarioCadastro`/`idUsuarioExclusao` no body |
 
 ---
 
@@ -207,8 +211,7 @@ export interface IUsuarioRepository {
 
 ## Evolução Futura
 
-- Criar `JwtAuthGuard` (em `infrastructure/guards/`) + decorator `@CurrentUser()` usando `JwtTokenService.verify()`
-- Migrar `produtos` (e futuros módulos) para usar `@CurrentUser()` em vez de `idUsuarioCadastro`/`idUsuarioExclusao` explícitos no body
+- Migrar futuros módulos (ex.: `pedidos`, `marceneiros`) para usar `@CurrentUser()` assim que existirem, em vez de receber id de usuário no body
 - Endpoint de registro de usuário, se necessário (usaria `PasswordHasherService` — método `hash()` ainda não existe, adicionar quando houver caso de uso real)
 
 ---

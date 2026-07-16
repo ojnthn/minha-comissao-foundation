@@ -15,12 +15,13 @@
 - CRUD de produto (criar, listar, buscar por ID, atualizar, remover)
 - Vincular produto a uma `ComissaoPorcentagem` padrão (`idComissaoPorcentagemPadrao`)
 - Soft delete via `logDataExclusao`/`logIdUsuarioExclusao`
+- Proteger `POST /produtos` e `DELETE /produtos/:id` com `JwtAuthGuard` (módulo `auth`), extraindo o usuário autenticado via `@CurrentUser()`
 
 ### Fora do escopo
 
 - Cálculo de comissão de pedidos (pertence ao módulo de pedidos, ainda não implementado)
 - CRUD de `ComissaoPorcentagem` (módulo próprio, ainda não implementado)
-- Autenticação/autorização (não há módulo `auth` ainda — ver "Decisões Técnicas")
+- Emissão/validação de JWT (pertence ao módulo `auth`)
 
 ---
 
@@ -80,14 +81,17 @@ export interface IProdutoRepository {
 
 ### `POST /produtos`
 
+**Header:** `Authorization: Bearer <token>` (obrigatório — `JwtAuthGuard`)
+
 **Request body:**
 ```json
 {
   "nome": "Chapa MDF Branco 15mm",
-  "idComissaoPorcentagemPadrao": 1,
-  "idUsuarioCadastro": 1
+  "idComissaoPorcentagemPadrao": 1
 }
 ```
+
+`idUsuarioCadastro` não é mais recebido no body — vem do `id` (claim `sub`) do JWT via `@CurrentUser()`.
 
 **Response (201):**
 ```json
@@ -122,10 +126,9 @@ export interface IProdutoRepository {
 
 ### `DELETE /produtos/:id`
 
-**Request body:**
-```json
-{ "idUsuarioExclusao": 1 }
-```
+**Header:** `Authorization: Bearer <token>` (obrigatório — `JwtAuthGuard`)
+
+Sem corpo — `idUsuarioExclusao` vem do `id` (claim `sub`) do JWT via `@CurrentUser()`.
 
 **Response (200):** sem corpo relevante
 
@@ -137,6 +140,7 @@ export interface IProdutoRepository {
 |---|---|---|
 | `NotFoundException` | `404` | Produto não existe ou já foi excluído (soft delete) |
 | `DomainException` | `422` | Violação genérica de regra de negócio |
+| `UnauthorizedException` (via `JwtAuthGuard`) | `401` | `POST /produtos` ou `DELETE /produtos/:id` chamado sem token válido |
 
 ---
 
@@ -197,7 +201,7 @@ export interface IProdutoRepository {
 | `domain` | Apenas `shared/types` (`Result<T>`) |
 | `application` | `domain/`, `shared/exceptions`, `shared/types` |
 | `infrastructure` | `domain/`, `@nestjs/*`, `@prisma/client` |
-| `presentation` | `application/dtos`, use cases via DI, `@nestjs/*` |
+| `presentation` | `application/dtos`, use cases via DI, `@nestjs/*`, `auth/infrastructure/guards`, `auth/infrastructure/decorators` |
 
 ---
 
@@ -239,12 +243,13 @@ Não se aplica — este módulo usa apenas `DATABASE_URL` (já configurado globa
 | `shared/types/result` | `Produto.create()` retorna `Result<Produto>` |
 | `ComissaoPorcentagem` (Prisma) | `idComissaoPorcentagemPadrao` referencia esse model — módulo próprio ainda não implementado |
 | `Pedido` (Prisma) | Consome `Produto` — módulo próprio ainda não implementado |
+| `auth` módulo | `ProdutosModule` importa `AuthModule` para usar `JwtAuthGuard`/`@CurrentUser()` em `create`/`delete` |
 
 ---
 
 ## Decisões Técnicas
 
-- **Sem `@CurrentUser()`/JWT**: não há módulo `auth` implementado ainda. `idUsuarioCadastro`/`idUsuarioExclusao` são recebidos explicitamente no body até o módulo de autenticação existir — trocar por `@CurrentUser()` quando `auth` for implementado.
+- **`idUsuarioCadastro`/`idUsuarioExclusao` via `@CurrentUser()`**: extraídos do JWT (claim `sub`) por `JwtAuthGuard`, não recebidos no body — evita que o cliente informe um id de usuário arbitrário.
 - **Rota em português (`/produtos`)**: a spec original (`docs/specs/movie-review-spec.md`) usava `product/` (resquício de template em inglês); adotado português para consistência com o schema Prisma (`Usuario`, `Produto`, `Pedido`) e com o domínio do projeto.
 - **Resposta de listagem com `pagination`/`details`**: formato herdado da spec original, mas com campos reais do domínio (`id`, `idComissaoPorcentagemPadrao`) em vez do exemplo informal da spec.
 
@@ -252,9 +257,9 @@ Não se aplica — este módulo usa apenas `DATABASE_URL` (já configurado globa
 
 ## Evolução Futura
 
-- Trocar `idUsuarioCadastro`/`idUsuarioExclusao` explícitos por `@CurrentUser()` quando o módulo `auth` existir
 - Adicionar módulo `comissoes` para CRUD de `ComissaoPorcentagem`
 - Adicionar módulo `pedidos` que referencia `Produto`
+- Avaliar se `GET`/`PATCH` também devem exigir autenticação (hoje só `create`/`delete` usam `JwtAuthGuard`)
 
 ---
 

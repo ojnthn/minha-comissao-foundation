@@ -6,6 +6,7 @@ import { PrismaUsuarioRepository } from './infrastructure/repositories/prisma-us
 import { USUARIO_REPOSITORY } from './domain/repositories/usuario.repository.interface';
 import { JwtTokenService } from '../../shared/jwt/jwt-token.service';
 import { PasswordHasherService } from '../../shared/crypto/password-hasher.service';
+import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 
 @Module({
   controllers: [AuthController],
@@ -14,7 +15,9 @@ import { PasswordHasherService } from '../../shared/crypto/password-hasher.servi
     LoginUseCase,
     JwtTokenService,
     PasswordHasherService,
+    JwtAuthGuard,
     { provide: USUARIO_REPOSITORY, useClass: PrismaUsuarioRepository },
   ],
+  exports: [JwtTokenService, JwtAuthGuard],
 })
 export class AuthModule {}
