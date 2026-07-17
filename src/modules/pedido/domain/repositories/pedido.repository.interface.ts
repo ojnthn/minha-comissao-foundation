@@ -21,6 +21,8 @@ export interface AtualizarPedidoData {
   produtos?: PedidoProdutoInput[];
 }
 
+export type OrdemListagemPedidos = 'mais-antigo' | 'mais-novo';
+
 export interface ListarPedidosFiltro {
   idMarceneiro?: number;
   idUsuarioCadastro?: number;
@@ -28,6 +30,7 @@ export interface ListarPedidosFiltro {
   dataFim?: Date;
   page: number;
   limit: number;
+  ordem?: OrdemListagemPedidos;
 }
 
 export interface PedidoListagemProdutoItem {
@@ -42,6 +45,7 @@ export interface PedidoListagemItem {
   valor: number;
   idMarceneiro: number;
   marceneiroNome: string;
+  logDataCadastro: Date;
   usuarioCadastro: {
     id: number;
     nome: string;

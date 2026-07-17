@@ -64,6 +64,7 @@ export class PedidoController {
       dataFim: query.dataFim ? new Date(query.dataFim) : undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 10,
+      ordem: query.ordem,
     });
   }
 

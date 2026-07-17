@@ -1,22 +1,53 @@
-# Spec: Informácoes do usuario logado
+# Spec: Alteração de contrato - Listagem de pedidos
 
 ## Módulo
-auth
+pedido
 
 ## Objetivo
-irá retornar os dados do usuario logado como nome, email
+alterar o retorno do contrato da listagem de pedidos
 
 ## Rota
-GET - auth
+/pedidos?porUsuario=true&dataInicio=2026-01-01&dataFim=2026-12-31&page=1&limit=10
+
+- implemente uma ordenacao de ordem = mais antigo | mais novo
 
 ## Request
-headers: token jwt // irá ser usado para buscar as informacoes do usuario
+headers: token jwt // irá ser usado para buscar as informacoes do usuario logado
 
 ## Response (sucesso)
 ```json
 {
-    "nome": "Nome usuário logado",
-    "email": "email usuário logado"
+    "pagination": {
+        "current": 1,
+        "next": null,
+    },
+    "detalhes": [
+        {
+            "id": 1,
+            "codigo": "#00001",
+            "data": "01/01/2001",
+            "marceneiro": {
+                "id": 1,
+                "nome": "Jonas da Marcenaria"
+            },
+            "vendedor": {
+                "id": 1,
+                "nome": "Jonathan"
+            },
+            "valor": {
+                "total": "R$ 1.500,00",
+                "comissao": "R$ 100,00"
+            },
+            "produtos": [
+                {
+                    "id": 2,
+                    "nome": "Chapa MDF Branco 15mm",
+                    "valor": "R$ 800,00",
+                    "porcentagem": "10%"
+                }
+            ]
+        }
+    ]
 }
 ```
 

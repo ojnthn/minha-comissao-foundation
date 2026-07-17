@@ -121,7 +121,9 @@ export class PrismaPedidoRepository implements IPedidoRepository {
         where,
         skip: (filtro.page - 1) * filtro.limit,
         take: filtro.limit,
-        orderBy: { id: 'asc' },
+        orderBy: {
+          logDataCadastro: filtro.ordem === 'mais-novo' ? 'desc' : 'asc',
+        },
         include: {
           marceneiro: true,
           usuarioCadastro: true,
@@ -138,6 +140,7 @@ export class PrismaPedidoRepository implements IPedidoRepository {
         valor: pedido.valor,
         idMarceneiro: pedido.idMarceneiro,
         marceneiroNome: pedido.marceneiro.nome,
+        logDataCadastro: pedido.logDataCadastro,
         usuarioCadastro: {
           id: pedido.usuarioCadastro.id,
           nome: pedido.usuarioCadastro.nome,

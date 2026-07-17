@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PEDIDO_REPOSITORY } from '../../domain/repositories/pedido.repository.interface';
+import {
+  OrdemListagemPedidos,
+  PEDIDO_REPOSITORY,
+} from '../../domain/repositories/pedido.repository.interface';
 import type { IPedidoRepository } from '../../domain/repositories/pedido.repository.interface';
 
 export interface ListPedidosInput {
@@ -10,25 +13,29 @@ export interface ListPedidosInput {
   dataFim?: Date;
   page: number;
   limit: number;
+  ordem?: OrdemListagemPedidos;
 }
 
 export interface ListPedidosOutput {
   pagination: {
     current: number;
-    next: number;
-    total: number;
+    next: number | null;
   };
-  data: Array<{
+  detalhes: Array<{
     id: number;
     codigo: string;
-    valor: string;
+    data: string;
     marceneiro: {
       id: number;
       nome: string;
     };
-    usuarioCadastro: {
+    vendedor: {
       id: number;
       nome: string;
+    };
+    valor: {
+      total: string;
+      comissao: string;
     };
     produtos: Array<{
       id: number;
@@ -52,6 +59,22 @@ function formatCodigo(id: number): string {
   return `#${String(id).padStart(5, '0')}`;
 }
 
+function formatData(data: Date): string {
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  return `${dia}/${mes}/${data.getFullYear()}`;
+}
+
+function calcularComissao(
+  produtos: Array<{ valorProduto: number; valorPorcentagem: number }>,
+): number {
+  return produtos.reduce(
+    (total, produto) =>
+      total + produto.valorProduto * (produto.valorPorcentagem / 100),
+    0,
+  );
+}
+
 @Injectable()
 export class ListPedidosUseCase {
   constructor(
@@ -67,6 +90,7 @@ export class ListPedidosUseCase {
       dataFim: input.dataFim,
       page: input.page,
       limit: input.limit,
+      ordem: input.ordem,
     });
 
     const hasNext = input.page * input.limit < total;
@@ -74,20 +98,23 @@ export class ListPedidosUseCase {
     return {
       pagination: {
         current: input.page,
-        next: hasNext ? input.page + 1 : input.page,
-        total,
+        next: hasNext ? input.page + 1 : null,
       },
-      data: data.map((pedido) => ({
+      detalhes: data.map((pedido) => ({
         id: pedido.id,
         codigo: formatCodigo(pedido.id),
-        valor: formatMoeda(pedido.valor),
+        data: formatData(pedido.logDataCadastro),
         marceneiro: {
           id: pedido.idMarceneiro,
           nome: pedido.marceneiroNome,
         },
-        usuarioCadastro: {
+        vendedor: {
           id: pedido.usuarioCadastro.id,
           nome: pedido.usuarioCadastro.nome,
+        },
+        valor: {
+          total: formatMoeda(pedido.valor),
+          comissao: formatMoeda(calcularComissao(pedido.produtos)),
         },
         produtos: pedido.produtos.map((produto) => ({
           id: produto.id,

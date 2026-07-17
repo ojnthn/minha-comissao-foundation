@@ -105,21 +105,23 @@ export interface IPedidoRepository {
 { "id": 1, "valor": 1500, "idMarceneiro": 3, "produtos": [5] }
 ```
 
-### `GET /pedidos?idMarceneiro=3&porUsuario=true&dataInicio=2026-01-01&dataFim=2026-12-31&page=1&limit=10`
+### `GET /pedidos?idMarceneiro=3&porUsuario=true&dataInicio=2026-01-01&dataFim=2026-12-31&page=1&limit=10&ordem=mais-novo`
 
 > `porUsuario=true` filtra somente os pedidos cujo `logIdUsuarioCadastro` é o usuário autenticado (do JWT).
+> `ordem` (opcional): `mais-antigo` (padrão, `logDataCadastro` ASC) ou `mais-novo` (`logDataCadastro` DESC).
 
 **Response (200):**
 ```json
 {
-  "pagination": { "current": 1, "next": 1, "total": 1 },
-  "data": [
+  "pagination": { "current": 1, "next": null },
+  "detalhes": [
     {
       "id": 1,
       "codigo": "#00001",
-      "valor": "R$ 1.500,00",
+      "data": "01/01/2026",
       "marceneiro": { "id": 3, "nome": "João da Marcenaria" },
-      "usuarioCadastro": { "id": 2, "nome": "Vendedor Teste" },
+      "vendedor": { "id": 2, "nome": "Vendedor Teste" },
+      "valor": { "total": "R$ 1.500,00", "comissao": "R$ 80,00" },
       "produtos": [
         { "id": 5, "nome": "MDF XX", "valor": "R$ 800,00", "porcentagem": "10%" }
       ]
@@ -127,6 +129,10 @@ export interface IPedidoRepository {
   ]
 }
 ```
+
+> `valor.comissao` = soma de `valorProduto * (valorPorcentagem / 100)` de cada item de `produtos` do pedido (não persistido; calculado no `ListPedidosUseCase`).
+> `pagination.next` é `null` quando não há próxima página (antes retornava a própria página atual).
+> `vendedor` é o mesmo dado antes exposto como `usuarioCadastro` — renomeado apenas no contrato de saída desta rota (repositório/domínio continuam usando `usuarioCadastro`).
 
 ### `PATCH /pedidos/:id`
 
@@ -197,10 +203,10 @@ Sem corpo — `idUsuarioExclusao` vem do `id` (claim `sub`) do JWT via `@Current
 ### ListPedidosUseCase
 
 ```
-1. Controller chama ListPedidosUseCase.execute() com filtros (idMarceneiro, dataInicio, dataFim) e page/limit
-2. UseCase chama IPedidoRepository.listar() — sempre filtra logDataExclusao IS NULL, inclui marceneiro e produtos via join
-3. UseCase formata a resposta: codigo (id zero-padded), valor/produto em BRL, porcentagem com "%"
-4. UseCase monta pagination (current/next/total)
+1. Controller chama ListPedidosUseCase.execute() com filtros (idMarceneiro, dataInicio, dataFim, ordem) e page/limit
+2. UseCase chama IPedidoRepository.listar() — sempre filtra logDataExclusao IS NULL, inclui marceneiro e produtos via join, ordena por logDataCadastro (asc/desc conforme `ordem`)
+3. UseCase formata a resposta: codigo (id zero-padded), data (DD/MM/YYYY de logDataCadastro), valor.total/valor.comissao e produto.valor em BRL, porcentagem com "%"
+4. UseCase monta pagination (current/next, next null quando não há próxima página)
 ```
 
 ---
@@ -302,6 +308,9 @@ Não se aplica — este módulo usa apenas `DATABASE_URL` (já configurado globa
 - **Campos de paginação em inglês (`pagination`/`current`/`next`/`total`)**: a spec usa `pagination`/`data` no nível superior (estilo `produtos`, não `marceneiro`); o conteúdo interno de `pagination` (não especificado na spec) seguiu o padrão de `produtos` (`current`/`next`), com `total` adicionado por já estar disponível no retorno do repositório.
 - **Filtro `porUsuario` (query, boolean)**: quando `true`, filtra a listagem por `logIdUsuarioCadastro` igual ao usuário do JWT (`@CurrentUser()`), reaproveitando o filtro `idUsuarioCadastro` já existente no repositório. Não faz parte da spec original — adicionado a pedido do usuário após a primeira implementação.
 - **`usuarioCadastro` (`id`/`nome`) na listagem**: adicionado ao item de listagem (join com `Usuario` via `usuarioCadastro`), também a pedido do usuário — mesmo padrão usado para `marceneiro`/`produtos` aninhados na resposta.
+- **Contrato de `GET /pedidos` alterado (`docs/specs/user-data.md`)**: `data`→`detalhes`, `usuarioCadastro`→`vendedor` (só no output), `valor` (string) virou `{ total, comissao }`, campo `data` (pedido) adicionado, `pagination.total` removido, `pagination.next` passa a ser `null` (antes repetia a página atual) quando não há próxima página. Mudança de contrato pedida explicitamente pela spec (`Objetivo: alterar o retorno do contrato da listagem de pedidos`).
+- **Fórmula de `valor.comissao`**: a spec não define a fórmula (seção "Repositório / Dependências" e "Regras específicas" ficaram como placeholder). Implementado como `Σ (valorProduto × valorPorcentagem / 100)` de cada item de `produtos`, reaproveitando dados já carregados na listagem (sem query adicional). **Não persistido** — calculado em runtime no `ListPedidosUseCase`, não fere a regra de não recalcular `valor` do pedido (esse continua vindo direto do banco em `valor.total`). Sinalizar para confirmação se a fórmula esperada for outra (ex.: só sobre o primeiro produto, ou percentual fixo por pedido).
+- **Novo parâmetro `ordem` (`mais-antigo` \| `mais-novo`)**: adicionado ao `GET /pedidos` conforme spec ("implemente uma ordenacao..."). Ordena por `logDataCadastro`; padrão `mais-antigo` (ASC) preserva o comportamento anterior (que ordenava por `id` ASC).
 
 ---
 

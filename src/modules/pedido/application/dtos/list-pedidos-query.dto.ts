@@ -3,10 +3,12 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
+  IsIn,
   IsInt,
   IsOptional,
   Min,
 } from 'class-validator';
+import type { OrdemListagemPedidos } from '../../domain/repositories/pedido.repository.interface';
 
 export class ListPedidosQueryDto {
   @ApiPropertyOptional({ example: 3 })
@@ -48,4 +50,13 @@ export class ListPedidosQueryDto {
   @IsInt()
   @Min(1)
   limit?: number = 10;
+
+  @ApiPropertyOptional({
+    example: 'mais-novo',
+    enum: ['mais-antigo', 'mais-novo'],
+    description: 'Ordena pela data de cadastro do pedido',
+  })
+  @IsOptional()
+  @IsIn(['mais-antigo', 'mais-novo'])
+  ordem?: OrdemListagemPedidos;
 }
