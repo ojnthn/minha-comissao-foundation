@@ -9,6 +9,7 @@
 | `user-config` | Implementado | Preferências de exibição e notificação do usuário autenticado |
 | `reviews` | Implementado | Registro de avaliação (nota, "amei", texto, data assistida) de usuário para filme |
 | `produtos` | Implementado | CRUD de produtos (chapas de MDF) vinculados a uma comissão percentual padrão |
+| `comissao-porcentagem` | Implementado | Listagem paginada dos percentuais de comissão cadastrados |
 
 ## Estrutura Interna
 
