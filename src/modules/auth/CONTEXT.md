@@ -15,6 +15,7 @@
 - Login por email/senha, retornando um JWT
 - Verificação de senha via hash (bcrypt)
 - Emissão de JWT contendo o `id` do usuário, expirando em 15 minutos
+- Retornar nome/email do usuário logado (`GET /auth`), a partir do id extraído do JWT
 
 ### Fora do escopo
 
@@ -28,6 +29,7 @@
 | Use Case | Arquivo | Rota |
 |---|---|---|
 | `LoginUseCase` | `application/use-cases/login.use-case.ts` | `POST /auth/login` |
+| `MeUseCase` | `application/use-cases/me.use-case.ts` | `GET /auth` (protegida por `JwtAuthGuard`) |
 
 `JwtAuthGuard` (não é use case, mas protege rotas de outros módulos): `infrastructure/guards/jwt-auth.guard.ts`. Extrai o Bearer token do header `Authorization`, chama `JwtTokenService.verify()` e popula `request.user = { id: payload.sub }`. Usado via `@UseGuards(JwtAuthGuard)` + decorator `@CurrentUser()` (`infrastructure/decorators/current-user.decorator.ts`).
 
@@ -61,6 +63,7 @@ export const USUARIO_REPOSITORY = 'USUARIO_REPOSITORY';
 
 export interface IUsuarioRepository {
   findByEmail(email: string): Promise<Usuario | null>;
+  findById(id: number): Promise<Usuario | null>;
 }
 ```
 
@@ -85,6 +88,23 @@ export interface IUsuarioRepository {
 { "statusCode": 401, "message": "Credenciais inválidas" }
 ```
 
+### `GET /auth`
+
+**Request headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200):**
+```json
+{ "nome": "Jonathan", "email": "jonathan19ricardo@gmail.com" }
+```
+
+**Response (401):**
+```json
+{ "statusCode": 401, "message": "Token inválido ou expirado" }
+```
+
 ---
 
 ## Erros Esperados
@@ -93,6 +113,7 @@ export interface IUsuarioRepository {
 |---|---|---|
 | `UnauthorizedException` | `401` | Email não encontrado OU senha não confere (mensagem genérica igual nos dois casos, para não vazar quais emails existem) |
 | `UnauthorizedException` (via `JwtAuthGuard`) | `401` | Rota protegida chamada sem header `Authorization: Bearer <token>`, ou com token inválido/expirado |
+| `UnauthorizedException` | `401` | `GET /auth`: id do JWT não corresponde a nenhum usuário existente (usuário removido após emissão do token) |
 
 ---
 
@@ -107,6 +128,16 @@ export interface IUsuarioRepository {
 4. UseCase compara senha recebida com hash armazenado via PasswordHasherService.compare()
 5. [Se não confere] → throw UnauthorizedException('Credenciais inválidas') → HTTP 401
 6. [Se confere] → JwtTokenService.generate({ sub: usuario.id }) → retorna { token }
+```
+
+### MeUseCase
+
+```
+1. JwtAuthGuard já validou o token e populou request.user = { id }
+2. Controller extrai o id via @CurrentUser() → chama MeUseCase.execute({ userId })
+3. UseCase busca usuário via IUsuarioRepository.findById()
+4. [Se não existe] → throw UnauthorizedException('Usuário não encontrado') → HTTP 401
+5. [Se existe] → retorna { nome, email }
 ```
 
 ---
@@ -177,6 +208,7 @@ export interface IUsuarioRepository {
 | Interface repositório | `domain/repositories/usuario.repository.interface.ts` | `IUsuarioRepository` |
 | Token DI | mesmo arquivo da interface | `USUARIO_REPOSITORY` |
 | Use case | `application/use-cases/login.use-case.ts` | `LoginUseCase` |
+| Use case | `application/use-cases/me.use-case.ts` | `MeUseCase` |
 | DTO | `application/dtos/login.dto.ts` | `LoginDto` |
 | Repositório Prisma | `infrastructure/repositories/prisma-usuario.repository.ts` | `PrismaUsuarioRepository` |
 | Controller | `presentation/controllers/auth.controller.ts` | `AuthController` |

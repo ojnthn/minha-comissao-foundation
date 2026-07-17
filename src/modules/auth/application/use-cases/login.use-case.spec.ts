@@ -24,7 +24,7 @@ describe('LoginUseCase', () => {
   }
 
   beforeEach(() => {
-    usuarioRepository = { findByEmail: jest.fn() };
+    usuarioRepository = { findByEmail: jest.fn(), findById: jest.fn() };
     passwordHasher = { compare: jest.fn() };
     jwtTokenService = {
       generate: jest.fn(),

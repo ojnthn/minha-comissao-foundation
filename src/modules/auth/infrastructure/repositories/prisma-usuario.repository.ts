@@ -12,6 +12,11 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
     return raw ? this.toDomain(raw) : null;
   }
 
+  async findById(id: number): Promise<Usuario | null> {
+    const raw = await this.prisma.usuario.findUnique({ where: { id } });
+    return raw ? this.toDomain(raw) : null;
+  }
+
   private toDomain(raw: PrismaUsuario): Usuario {
     const result = Usuario.create({
       id: raw.id,
