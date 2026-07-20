@@ -16,6 +16,7 @@ export class PrismaMarceneiroRepository implements IMarceneiroRepository {
     const raw = await this.prisma.marceneiro.create({
       data: {
         nome: data.nome,
+        telefone: data.telefone,
         logIdUsuarioCadastro: data.logIdUsuarioCadastro,
       },
     });
@@ -27,6 +28,7 @@ export class PrismaMarceneiroRepository implements IMarceneiroRepository {
       where: { id },
       data: {
         nome: data.nome,
+        telefone: data.telefone,
       },
     });
     return this.toDomain(raw);
@@ -89,6 +91,7 @@ export class PrismaMarceneiroRepository implements IMarceneiroRepository {
     const result = Marceneiro.create({
       id: raw.id,
       nome: raw.nome,
+      telefone: raw.telefone,
       logDataCadastro: raw.logDataCadastro,
       logIdUsuarioCadastro: raw.logIdUsuarioCadastro,
       logDataExclusao: raw.logDataExclusao,

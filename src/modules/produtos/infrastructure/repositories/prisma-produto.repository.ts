@@ -16,6 +16,7 @@ export class PrismaProdutoRepository implements IProdutoRepository {
     const raw = await this.prisma.produto.create({
       data: {
         nome: data.nome,
+        valorPorM2: data.valorPorM2,
         idComissaoPorcentagemPadrao: data.idComissaoPorcentagemPadrao,
         logIdUsuarioCadastro: data.logIdUsuarioCadastro,
       },
@@ -28,6 +29,7 @@ export class PrismaProdutoRepository implements IProdutoRepository {
       where: { id },
       data: {
         nome: data.nome,
+        valorPorM2: data.valorPorM2,
         idComissaoPorcentagemPadrao: data.idComissaoPorcentagemPadrao,
       },
     });
@@ -63,10 +65,32 @@ export class PrismaProdutoRepository implements IProdutoRepository {
     return { produtos, hasNext };
   }
 
+  async findByNome(
+    nome: string,
+    page: number,
+    limit: number,
+  ): Promise<FindAllProdutosResult> {
+    const raw = await this.prisma.produto.findMany({
+      where: {
+        logDataExclusao: null,
+        nome: { contains: nome },
+      },
+      skip: (page - 1) * limit,
+      take: limit + 1,
+      orderBy: { id: 'asc' },
+    });
+
+    const hasNext = raw.length > limit;
+    const produtos = raw.slice(0, limit).map((item) => this.toDomain(item));
+
+    return { produtos, hasNext };
+  }
+
   private toDomain(raw: PrismaProduto): Produto {
     const result = Produto.create({
       id: raw.id,
       nome: raw.nome,
+      valorPorM2: raw.valorPorM2,
       idComissaoPorcentagemPadrao: raw.idComissaoPorcentagemPadrao,
       logDataCadastro: raw.logDataCadastro,
       logIdUsuarioCadastro: raw.logIdUsuarioCadastro,

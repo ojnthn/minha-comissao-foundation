@@ -4,12 +4,14 @@ import type { IMarceneiroRepository } from '../../domain/repositories/marceneiro
 
 export interface CreateMarceneiroInput {
   nome: string;
+  telefone?: string;
   idUsuarioCadastro: number;
 }
 
 export interface CreateMarceneiroOutput {
   id: number;
   nome: string;
+  telefone: string | null;
 }
 
 @Injectable()
@@ -22,12 +24,14 @@ export class CreateMarceneiroUseCase {
   async execute(input: CreateMarceneiroInput): Promise<CreateMarceneiroOutput> {
     const marceneiro = await this.marceneiroRepository.create({
       nome: input.nome,
+      telefone: input.telefone,
       logIdUsuarioCadastro: input.idUsuarioCadastro,
     });
 
     return {
       id: marceneiro.id,
       nome: marceneiro.nome,
+      telefone: marceneiro.telefone,
     };
   }
 }

@@ -16,6 +16,7 @@ export interface SearchMarceneirosByNomeOutput {
   detalhes: Array<{
     id: number;
     nome: string;
+    telefone: string | null;
   }>;
 }
 
@@ -43,6 +44,7 @@ export class SearchMarceneirosByNomeUseCase {
       detalhes: marceneiros.map((marceneiro) => ({
         id: marceneiro.id,
         nome: marceneiro.nome,
+        telefone: marceneiro.telefone,
       })),
     };
   }

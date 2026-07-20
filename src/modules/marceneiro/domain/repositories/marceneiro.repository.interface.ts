@@ -9,11 +9,13 @@ export interface FindAllMarceneirosResult {
 
 export interface CreateMarceneiroData {
   nome: string;
+  telefone?: string;
   logIdUsuarioCadastro: number;
 }
 
 export interface UpdateMarceneiroData {
   nome?: string;
+  telefone?: string;
 }
 
 export interface IMarceneiroRepository {

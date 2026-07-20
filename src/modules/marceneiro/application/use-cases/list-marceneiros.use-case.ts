@@ -15,6 +15,7 @@ export interface ListMarceneirosOutput {
   detalhes: Array<{
     id: number;
     nome: string;
+    telefone: string | null;
   }>;
 }
 
@@ -39,6 +40,7 @@ export class ListMarceneirosUseCase {
       detalhes: marceneiros.map((marceneiro) => ({
         id: marceneiro.id,
         nome: marceneiro.nome,
+        telefone: marceneiro.telefone,
       })),
     };
   }

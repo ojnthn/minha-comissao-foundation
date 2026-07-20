@@ -39,6 +39,7 @@ model ComissaoPorcentagem {
 model Produto {
   id                          Int       @id @default(autoincrement())
   nome                        String    @db.VarChar(150)
+  valorPorM2                  Float     @map("valor_por_m2")
   idComissaoPorcentagemPadrao Int       @map("id_comissao_porcentagem_padrao")
   logDataCadastro             DateTime  @default(dbgenerated("CURRENT_TIMESTAMP")) @map("log_data_cadastro") @db.DateTime
   logIdUsuarioCadastro        Int       @map("log_id_usuario_cadastro")
@@ -56,6 +57,7 @@ model Produto {
 model Marceneiro {
   id                   Int       @id @default(autoincrement())
   nome                 String    @db.VarChar(150)
+  telefone             String?   @db.VarChar(20)
   logDataCadastro      DateTime  @default(dbgenerated("CURRENT_TIMESTAMP")) @map("log_data_cadastro") @db.DateTime
   logIdUsuarioCadastro Int       @map("log_id_usuario_cadastro")
   logDataExclusao      DateTime? @map("log_data_exclusao") @db.DateTime

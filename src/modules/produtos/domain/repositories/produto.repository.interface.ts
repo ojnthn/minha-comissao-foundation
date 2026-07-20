@@ -9,12 +9,14 @@ export interface FindAllProdutosResult {
 
 export interface CreateProdutoData {
   nome: string;
+  valorPorM2: number;
   idComissaoPorcentagemPadrao: number;
   logIdUsuarioCadastro: number;
 }
 
 export interface UpdateProdutoData {
   nome?: string;
+  valorPorM2?: number;
   idComissaoPorcentagemPadrao?: number;
 }
 
@@ -24,4 +26,9 @@ export interface IProdutoRepository {
   softDelete(id: number, idUsuarioExclusao: number): Promise<void>;
   findById(id: number): Promise<Produto | null>;
   findAll(page: number, limit: number): Promise<FindAllProdutosResult>;
+  findByNome(
+    nome: string,
+    page: number,
+    limit: number,
+  ): Promise<FindAllProdutosResult>;
 }

@@ -3,6 +3,7 @@ import { fail, ok, Result } from '../../../../shared/types/result';
 export interface MarceneiroProps {
   id: number;
   nome: string;
+  telefone: string | null;
   logDataCadastro: Date;
   logIdUsuarioCadastro: number;
   logDataExclusao: Date | null;
@@ -25,6 +26,10 @@ export class Marceneiro {
 
   get nome(): string {
     return this.props.nome;
+  }
+
+  get telefone(): string | null {
+    return this.props.telefone;
   }
 
   get logDataCadastro(): Date {

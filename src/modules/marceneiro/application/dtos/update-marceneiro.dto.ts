@@ -6,4 +6,9 @@ export class UpdateMarceneiroDto {
   @IsOptional()
   @IsString()
   nome?: string;
+
+  @ApiPropertyOptional({ example: '(11) 98765-4321' })
+  @IsOptional()
+  @IsString()
+  telefone?: string;
 }

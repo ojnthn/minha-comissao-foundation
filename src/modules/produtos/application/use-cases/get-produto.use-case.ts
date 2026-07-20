@@ -10,6 +10,7 @@ export interface GetProdutoInput {
 export interface GetProdutoOutput {
   id: number;
   nome: string;
+  valorPorM2: number;
   idComissaoPorcentagemPadrao: number;
 }
 
@@ -30,6 +31,7 @@ export class GetProdutoUseCase {
     return {
       id: produto.id,
       nome: produto.nome,
+      valorPorM2: produto.valorPorM2,
       idComissaoPorcentagemPadrao: produto.idComissaoPorcentagemPadrao,
     };
   }

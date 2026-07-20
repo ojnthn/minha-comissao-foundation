@@ -2,12 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PRODUTO_REPOSITORY } from '../../domain/repositories/produto.repository.interface';
 import type { IProdutoRepository } from '../../domain/repositories/produto.repository.interface';
 
-export interface ListProdutosInput {
+export interface SearchProdutosByNomeInput {
+  nome: string;
   page: number;
   limit: number;
 }
 
-export interface ListProdutosOutput {
+export interface SearchProdutosByNomeOutput {
   pagination: {
     current: number;
     next: number | null;
@@ -21,14 +22,17 @@ export interface ListProdutosOutput {
 }
 
 @Injectable()
-export class ListProdutosUseCase {
+export class SearchProdutosByNomeUseCase {
   constructor(
     @Inject(PRODUTO_REPOSITORY)
     private readonly produtoRepository: IProdutoRepository,
   ) {}
 
-  async execute(input: ListProdutosInput): Promise<ListProdutosOutput> {
-    const { produtos, hasNext } = await this.produtoRepository.findAll(
+  async execute(
+    input: SearchProdutosByNomeInput,
+  ): Promise<SearchProdutosByNomeOutput> {
+    const { produtos, hasNext } = await this.produtoRepository.findByNome(
+      input.nome,
       input.page,
       input.limit,
     );

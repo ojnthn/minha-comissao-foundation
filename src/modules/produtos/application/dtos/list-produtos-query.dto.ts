@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class ListProdutosQueryDto {
   @ApiPropertyOptional({ example: 1, default: 1 })
@@ -16,4 +16,9 @@ export class ListProdutosQueryDto {
   @IsInt()
   @Min(1)
   limit?: number = 10;
+
+  @ApiPropertyOptional({ example: 'MDF Branco', description: 'Filtra produtos pelo nome' })
+  @IsOptional()
+  @IsString()
+  nome?: string;
 }

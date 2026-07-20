@@ -6,11 +6,13 @@ import type { IMarceneiroRepository } from '../../domain/repositories/marceneiro
 export interface UpdateMarceneiroInput {
   id: number;
   nome?: string;
+  telefone?: string;
 }
 
 export interface UpdateMarceneiroOutput {
   id: number;
   nome: string;
+  telefone: string | null;
 }
 
 @Injectable()
@@ -28,11 +30,13 @@ export class UpdateMarceneiroUseCase {
 
     const marceneiro = await this.marceneiroRepository.update(input.id, {
       nome: input.nome,
+      telefone: input.telefone,
     });
 
     return {
       id: marceneiro.id,
       nome: marceneiro.nome,
+      telefone: marceneiro.telefone,
     };
   }
 }

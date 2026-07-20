@@ -22,6 +22,7 @@ import { ListProdutosQueryDto } from '../../application/dtos/list-produtos-query
 import { CreateProdutoUseCase } from '../../application/use-cases/create-produto.use-case';
 import { GetProdutoUseCase } from '../../application/use-cases/get-produto.use-case';
 import { ListProdutosUseCase } from '../../application/use-cases/list-produtos.use-case';
+import { SearchProdutosByNomeUseCase } from '../../application/use-cases/search-produtos-by-nome.use-case';
 import { UpdateProdutoUseCase } from '../../application/use-cases/update-produto.use-case';
 import { DeleteProdutoUseCase } from '../../application/use-cases/delete-produto.use-case';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
@@ -34,14 +35,22 @@ export class ProdutosController {
     private readonly createProdutoUseCase: CreateProdutoUseCase,
     private readonly getProdutoUseCase: GetProdutoUseCase,
     private readonly listProdutosUseCase: ListProdutosUseCase,
+    private readonly searchProdutosByNomeUseCase: SearchProdutosByNomeUseCase,
     private readonly updateProdutoUseCase: UpdateProdutoUseCase,
     private readonly deleteProdutoUseCase: DeleteProdutoUseCase,
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Lista produtos com paginação' })
+  @ApiOperation({ summary: 'Lista produtos com paginação, opcionalmente filtrando por nome' })
   @ApiResponse({ status: 200, description: 'Lista paginada de produtos' })
   list(@Query() query: ListProdutosQueryDto) {
+    if (query.nome && query.nome.trim()) {
+      return this.searchProdutosByNomeUseCase.execute({
+        nome: query.nome,
+        page: query.page ?? 1,
+        limit: query.limit ?? 10,
+      });
+    }
     return this.listProdutosUseCase.execute({
       page: query.page ?? 1,
       limit: query.limit ?? 10,
@@ -64,6 +73,7 @@ export class ProdutosController {
   create(@Body() dto: CreateProdutoDto, @CurrentUser() userId: number) {
     return this.createProdutoUseCase.execute({
       nome: dto.nome,
+      valorPorM2: dto.valorPorM2,
       idComissaoPorcentagemPadrao: dto.idComissaoPorcentagemPadrao,
       idUsuarioCadastro: userId,
     });
@@ -77,6 +87,7 @@ export class ProdutosController {
     return this.updateProdutoUseCase.execute({
       id,
       nome: dto.nome,
+      valorPorM2: dto.valorPorM2,
       idComissaoPorcentagemPadrao: dto.idComissaoPorcentagemPadrao,
     });
   }

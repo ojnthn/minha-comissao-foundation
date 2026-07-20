@@ -6,12 +6,14 @@ import type { IProdutoRepository } from '../../domain/repositories/produto.repos
 export interface UpdateProdutoInput {
   id: number;
   nome?: string;
+  valorPorM2?: number;
   idComissaoPorcentagemPadrao?: number;
 }
 
 export interface UpdateProdutoOutput {
   id: number;
   nome: string;
+  valorPorM2: number;
   idComissaoPorcentagemPadrao: number;
 }
 
@@ -30,12 +32,14 @@ export class UpdateProdutoUseCase {
 
     const produto = await this.produtoRepository.update(input.id, {
       nome: input.nome,
+      valorPorM2: input.valorPorM2,
       idComissaoPorcentagemPadrao: input.idComissaoPorcentagemPadrao,
     });
 
     return {
       id: produto.id,
       nome: produto.nome,
+      valorPorM2: produto.valorPorM2,
       idComissaoPorcentagemPadrao: produto.idComissaoPorcentagemPadrao,
     };
   }

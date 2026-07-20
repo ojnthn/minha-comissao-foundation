@@ -70,6 +70,7 @@ export class MarceneiroController {
   create(@Body() dto: CreateMarceneiroDto, @CurrentUser() userId: number) {
     return this.createMarceneiroUseCase.execute({
       nome: dto.nome,
+      telefone: dto.telefone,
       idUsuarioCadastro: userId,
     });
   }
@@ -85,6 +86,7 @@ export class MarceneiroController {
     return this.updateMarceneiroUseCase.execute({
       id,
       nome: dto.nome,
+      telefone: dto.telefone,
     });
   }
 

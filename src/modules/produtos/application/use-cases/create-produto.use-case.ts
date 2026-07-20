@@ -4,6 +4,7 @@ import type { IProdutoRepository } from '../../domain/repositories/produto.repos
 
 export interface CreateProdutoInput {
   nome: string;
+  valorPorM2: number;
   idComissaoPorcentagemPadrao: number;
   idUsuarioCadastro: number;
 }
@@ -11,6 +12,7 @@ export interface CreateProdutoInput {
 export interface CreateProdutoOutput {
   id: number;
   nome: string;
+  valorPorM2: number;
   idComissaoPorcentagemPadrao: number;
 }
 
@@ -24,6 +26,7 @@ export class CreateProdutoUseCase {
   async execute(input: CreateProdutoInput): Promise<CreateProdutoOutput> {
     const produto = await this.produtoRepository.create({
       nome: input.nome,
+      valorPorM2: input.valorPorM2,
       idComissaoPorcentagemPadrao: input.idComissaoPorcentagemPadrao,
       logIdUsuarioCadastro: input.idUsuarioCadastro,
     });
@@ -31,6 +34,7 @@ export class CreateProdutoUseCase {
     return {
       id: produto.id,
       nome: produto.nome,
+      valorPorM2: produto.valorPorM2,
       idComissaoPorcentagemPadrao: produto.idComissaoPorcentagemPadrao,
     };
   }

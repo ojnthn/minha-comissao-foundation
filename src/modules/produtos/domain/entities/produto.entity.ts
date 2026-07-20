@@ -3,6 +3,7 @@ import { fail, ok, Result } from '../../../../shared/types/result';
 export interface ProdutoProps {
   id: number;
   nome: string;
+  valorPorM2: number;
   idComissaoPorcentagemPadrao: number;
   logDataCadastro: Date;
   logIdUsuarioCadastro: number;
@@ -23,6 +24,9 @@ export class Produto {
     ) {
       return fail('Comissão padrão do produto é obrigatória');
     }
+    if (typeof props.valorPorM2 !== 'number' || !Number.isFinite(props.valorPorM2)) {
+      return fail('Valor do m² é obrigatório');
+    }
     return ok(new Produto(props));
   }
 
@@ -32,6 +36,10 @@ export class Produto {
 
   get nome(): string {
     return this.props.nome;
+  }
+
+  get valorPorM2(): number {
+    return this.props.valorPorM2;
   }
 
   get idComissaoPorcentagemPadrao(): number {
