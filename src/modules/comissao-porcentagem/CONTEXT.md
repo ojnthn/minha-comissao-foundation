@@ -38,7 +38,7 @@
 |---|---|---|
 | `id` | `number` | Gerado pelo banco (auto-incremento); imutável |
 | `nome` | `string` | Obrigatório, não vazio — exposto na API como `descricao` |
-| `valor` | `number` | Obrigatório — percentual numérico (ex: `7` para 7%); não exposto na listagem |
+| `valor` | `number` | Obrigatório — percentual numérico (ex: `7` para 7%); exposto na listagem desde 2026-07-20 (ver Decisões Técnicas) |
 
 > Entidade usa constructor privado + factory `create()` que retorna `Result<T>`.
 
@@ -71,13 +71,13 @@ export interface IComissaoPorcentagemRepository {
 {
   "pagination": { "current": 1, "next": null },
   "detalhes": [
-    { "id": 1, "descricao": "7%" },
-    { "id": 2, "descricao": "2%" }
+    { "id": 1, "descricao": "7%", "valor": 7 },
+    { "id": 2, "descricao": "2%", "valor": 2 }
   ]
 }
 ```
 
-`descricao` mapeia o campo `nome` da entidade.
+`descricao` mapeia o campo `nome` da entidade. `valor` é o percentual numérico cru (ver Decisões Técnicas — reversão da decisão original de não expor esse campo).
 
 ---
 
@@ -183,6 +183,7 @@ Não se aplica — este módulo usa apenas `DATABASE_URL` (já configurado globa
 - **`detalhes` (não `details`)**: alinhado com `GET /pedidos`, que já usa a chave em português; `GET /produtos` é a exceção (`details`) e não foi tomada como referência aqui.
 - **`descricao` mapeado de `nome`**: a tabela `comissao_porcentagem` armazena a string formatada (ex: `"7%"`) na coluna `nome`; não há coluna `descricao` no schema Prisma.
 - **Sem CRUD**: a spec só define a rota `GET`; cadastro de percentuais é manual via phpMyAdmin, conforme a stack documentada no `CLAUDE.md` raiz.
+- **`valor` passa a ser exposto em `GET /comissao-porcentagem` (2026-07-20)**: reverte a decisão original ("não expor o campo `valor` na listagem"). Motivo: a feature de cadastro de pedido (`minha-comissao-app`) precisa do percentual numérico cru para calcular `valorPorcentagem` em tempo real e montar o payload de `POST /pedidos` — `descricao` é uma string formatada (`"7%"`) e não é fonte confiável pra cálculo (não há garantia de que todo registro cadastrado via phpMyAdmin siga esse padrão de nome). Pedido explícito do usuário ao decidir entre parsear a string ou expor o número; optou-se por expor o número. `ListComissaoPorcentagemUseCase` agora inclui `valor: comissao.valor` em cada item de `detalhes`.
 
 ---
 
@@ -196,4 +197,3 @@ Não se aplica — este módulo usa apenas `DATABASE_URL` (já configurado globa
 
 - Não implementar create/update/delete sem solicitação explícita
 - Não acessar `PrismaClient` fora de `infrastructure/repositories/`
-- Não expor o campo `valor` na listagem (fora do contrato da spec)

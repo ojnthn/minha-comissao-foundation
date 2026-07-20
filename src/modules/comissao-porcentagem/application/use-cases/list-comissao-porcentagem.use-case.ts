@@ -15,6 +15,7 @@ export interface ListComissaoPorcentagemOutput {
   detalhes: Array<{
     id: number;
     descricao: string;
+    valor: number;
   }>;
 }
 
@@ -39,6 +40,7 @@ export class ListComissaoPorcentagemUseCase {
       detalhes: comissoes.map((comissao) => ({
         id: comissao.id,
         descricao: comissao.nome,
+        valor: comissao.valor,
       })),
     };
   }
