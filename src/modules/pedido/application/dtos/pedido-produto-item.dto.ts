@@ -7,11 +7,13 @@ export class PedidoProdutoItemDto {
   @Min(1)
   idProduto!: number;
 
-  @ApiProperty({ example: 800 })
-  @IsInt()
+  @ApiProperty({ example: 800.0 })
+  @IsNumber()
+  @Min(0.01, { message: 'Valor do produto deve ser maior que zero' })
   valorProduto!: number;
 
   @ApiProperty({ example: 10 })
   @IsNumber()
+  @Min(0.01, { message: 'Percentual de comissão deve ser maior que zero' })
   valorPorcentagem!: number;
 }

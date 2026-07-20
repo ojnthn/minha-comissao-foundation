@@ -309,6 +309,17 @@ Não se aplica — este módulo usa apenas `DATABASE_URL` (já configurado globa
 - **Filtro `porUsuario` (query, boolean)**: quando `true`, filtra a listagem por `logIdUsuarioCadastro` igual ao usuário do JWT (`@CurrentUser()`), reaproveitando o filtro `idUsuarioCadastro` já existente no repositório. Não faz parte da spec original — adicionado a pedido do usuário após a primeira implementação.
 - **`usuarioCadastro` (`id`/`nome`) na listagem**: adicionado ao item de listagem (join com `Usuario` via `usuarioCadastro`), também a pedido do usuário — mesmo padrão usado para `marceneiro`/`produtos` aninhados na resposta.
 - **Contrato de `GET /pedidos` alterado (`docs/specs/user-data.md`)**: `data`→`detalhes`, `usuarioCadastro`→`vendedor` (só no output), `valor` (string) virou `{ total, comissao }`, campo `data` (pedido) adicionado, `pagination.total` removido, `pagination.next` passa a ser `null` (antes repetia a página atual) quando não há próxima página. Mudança de contrato pedida explicitamente pela spec (`Objetivo: alterar o retorno do contrato da listagem de pedidos`).
+- **`valor`/`valorProduto` exigem `> 0` (`@Min(0.01)`) nos DTOs (2026-07-20)**: antes só
+  `@IsNumber()`/`@IsInt()`, sem mínimo — um `valor`/`valorProduto` de `0` passava a
+  validação, era gravado no banco, e só quebrava depois, na leitura (`Pedido.create()`
+  rejeita `valor <= 0` como invariante de domínio, e o mapper `toDomain()` lança
+  "Inconsistência no banco" para qualquer violação — linha já gravada fica órfã, sem
+  conseguir ser lida via `atualizar`/`excluir`, que dependem de `buscarPorId` → `toDomain`).
+  Também corrigido `valorProduto` de `@IsInt()` para `@IsNumber()` — é `Float` no schema
+  (`m2 × valorPorM2` raramente é inteiro), o tipo antigo rejeitava valores decimais
+  legítimos. Motivo: incidente real em produção — pedido criado com `valorProduto: 0`
+  porque a chapa escolhida tinha `valorPorM2: 0` (produto legado, cadastrado antes do
+  campo virar obrigatório) — front não validava isso e o DTO deixava passar.
 - **Fórmula de `valor.comissao`**: a spec não define a fórmula (seção "Repositório / Dependências" e "Regras específicas" ficaram como placeholder). Implementado como `Σ (valorProduto × valorPorcentagem / 100)` de cada item de `produtos`, reaproveitando dados já carregados na listagem (sem query adicional). **Não persistido** — calculado em runtime no `ListPedidosUseCase`, não fere a regra de não recalcular `valor` do pedido (esse continua vindo direto do banco em `valor.total`). Sinalizar para confirmação se a fórmula esperada for outra (ex.: só sobre o primeiro produto, ou percentual fixo por pedido).
 - **Novo parâmetro `ordem` (`mais-antigo` \| `mais-novo`)**: adicionado ao `GET /pedidos` conforme spec ("implemente uma ordenacao..."). Ordena por `logDataCadastro`; padrão `mais-antigo` (ASC) preserva o comportamento anterior (que ordenava por `id` ASC).
 

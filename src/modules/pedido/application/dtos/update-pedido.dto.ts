@@ -15,6 +15,7 @@ export class UpdatePedidoDto {
   @ApiPropertyOptional({ example: 1500.0 })
   @IsOptional()
   @IsNumber()
+  @Min(0.01, { message: 'Valor do pedido deve ser maior que zero' })
   valor?: number;
 
   @ApiPropertyOptional({ example: 3 })

@@ -13,6 +13,7 @@ import { PedidoProdutoItemDto } from './pedido-produto-item.dto';
 export class CreatePedidoDto {
   @ApiProperty({ example: 1500.0 })
   @IsNumber()
+  @Min(0.01, { message: 'Valor do pedido deve ser maior que zero' })
   valor!: number;
 
   @ApiProperty({ example: 3 })
